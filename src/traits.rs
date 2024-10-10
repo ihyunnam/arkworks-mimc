@@ -1,7 +1,9 @@
-use std::marker::PhantomData;
+use rand::rngs::OsRng;
+use std::{borrow::Borrow, marker::PhantomData};
 
-use ark_crypto_primitives::{crh::TwoToOneCRH, CRH};
-use ark_ff::{FpParameters, PrimeField};
+use ark_crypto_primitives::{crh::{sha256::digest::typenum::Len, CRHScheme, TwoToOneCRHScheme}, Error};
+use ark_ff::{PrimeField};
+use ark_std::iterable::Iterable;
 
 use crate::{utils::to_field_elements, MiMC, MiMCParameters};
 
@@ -32,10 +34,65 @@ impl<F: PrimeField, P: MiMCParameters> std::fmt::Debug for MiMC<F, P> {
             .finish()
     }
 }
+// const INPUT_SIZE_BITS: usize = <F::Params as FpParameters>::CAPACITY as usize;
+// impl<F: PrimeField, P: MiMCParameters> CRHScheme for MiMCFeistelCRH<F, P> {
+//     type Input = [u8];
+//     type Output = F;
 
-impl<F: PrimeField, P: MiMCParameters> CRH for MiMCFeistelCRH<F, P> {
-    const INPUT_SIZE_BITS: usize = <F::Params as FpParameters>::CAPACITY as usize;
+//     type Parameters = MiMC<F, P>;
 
+//     fn setup<R: ark_std::rand::Rng>(
+//         r: &mut R,
+//     ) -> Result<Self::Parameters, ark_crypto_primitives::Error> {
+//         Ok(Self::Parameters {
+//             num_outputs: 1,
+//             params: PhantomData,
+//             k: F::rand(r),
+//             round_keys: (0..P::ROUNDS).map(|_| F::rand(r)).collect::<Vec<_>>(),
+//         })
+//     }
+
+//     fn evaluate(
+//         parameters: &Self::Parameters,
+//         input: &[u8],
+//     ) -> Result<Self::Output, ark_crypto_primitives::Error> {
+//         let fields: Vec<F> = to_field_elements(input);
+//         Ok(parameters.permute_feistel(fields)[0])
+//     }
+// }
+
+// impl<F: PrimeField, P: MiMCParameters> TwoToOneCRHScheme for MiMCFeistelCRH<F, P> {
+
+//     type Input = [u8];
+//     type Output = F;
+
+//     type Parameters = MiMC<F, P>;
+
+//     fn setup<R: ark_std::rand::Rng>(
+//         r: &mut R,
+//     ) -> Result<Self::Parameters, ark_crypto_primitives::Error> {
+//         <Self as CRH>::setup(r)
+//     }
+
+//     fn evaluate(
+//         parameters: &Self::Parameters,
+//         left_input: &[u8],
+//         right_input: &[u8],
+//     ) -> Result<Self::Output, ark_crypto_primitives::Error> {
+//         assert_eq!(left_input.len(), right_input.len());
+//         let chained: Vec<_> = left_input
+//             .iter()
+//             .chain(right_input.iter())
+//             .copied()
+//             .collect();
+//         <Self as CRH>::evaluate(parameters, &chained)
+//     }
+// }
+
+// const INPUT_SIZE_BITS: usize = <F::Params as FpParameters>::CAPACITY as usize;
+const INPUT_SIZE_BITS: usize = 256;     // capacity(?) for bn254::Fr
+impl<F: PrimeField, P: MiMCParameters> CRHScheme for MiMCNonFeistelCRH<F, P> {
+    type Input = [u8];
     type Output = F;
 
     type Parameters = MiMC<F, P>;
@@ -51,77 +108,22 @@ impl<F: PrimeField, P: MiMCParameters> CRH for MiMCFeistelCRH<F, P> {
         })
     }
 
-    fn evaluate(
+    fn evaluate<T: Borrow<Self::Input>>(
         parameters: &Self::Parameters,
-        input: &[u8],
+        input: T,
     ) -> Result<Self::Output, ark_crypto_primitives::Error> {
-        let fields: Vec<F> = to_field_elements(input);
-        Ok(parameters.permute_feistel(fields)[0])
-    }
-}
-
-impl<F: PrimeField, P: MiMCParameters> TwoToOneCRH for MiMCFeistelCRH<F, P> {
-    const LEFT_INPUT_SIZE_BITS: usize = Self::INPUT_SIZE_BITS;
-
-    const RIGHT_INPUT_SIZE_BITS: usize = Self::INPUT_SIZE_BITS;
-
-    type Output = F;
-
-    type Parameters = MiMC<F, P>;
-
-    fn setup<R: ark_std::rand::Rng>(
-        r: &mut R,
-    ) -> Result<Self::Parameters, ark_crypto_primitives::Error> {
-        <Self as CRH>::setup(r)
-    }
-
-    fn evaluate(
-        parameters: &Self::Parameters,
-        left_input: &[u8],
-        right_input: &[u8],
-    ) -> Result<Self::Output, ark_crypto_primitives::Error> {
-        assert_eq!(left_input.len(), right_input.len());
-        let chained: Vec<_> = left_input
-            .iter()
-            .chain(right_input.iter())
-            .copied()
-            .collect();
-        <Self as CRH>::evaluate(parameters, &chained)
-    }
-}
-
-impl<F: PrimeField, P: MiMCParameters> CRH for MiMCNonFeistelCRH<F, P> {
-    const INPUT_SIZE_BITS: usize = <F::Params as FpParameters>::CAPACITY as usize;
-
-    type Output = F;
-
-    type Parameters = MiMC<F, P>;
-
-    fn setup<R: ark_std::rand::Rng>(
-        r: &mut R,
-    ) -> Result<Self::Parameters, ark_crypto_primitives::Error> {
-        Ok(Self::Parameters {
-            num_outputs: 1,
-            params: PhantomData,
-            k: F::rand(r),
-            round_keys: (0..P::ROUNDS).map(|_| F::rand(r)).collect::<Vec<_>>(),
-        })
-    }
-
-    fn evaluate(
-        parameters: &Self::Parameters,
-        input: &[u8],
-    ) -> Result<Self::Output, ark_crypto_primitives::Error> {
+        let input = input.borrow();
         let fields: Vec<F> = to_field_elements(input);
         Ok(parameters.permute_non_feistel(fields)[0])
     }
 }
 
-impl<F: PrimeField, P: MiMCParameters> TwoToOneCRH for MiMCNonFeistelCRH<F, P> {
-    const LEFT_INPUT_SIZE_BITS: usize = Self::INPUT_SIZE_BITS;
+// const INPUT_SIZE_BITS: usize = 32;
+const LEFT_INPUT_SIZE_BITS: usize = INPUT_SIZE_BITS;
+const RIGHT_INPUT_SIZE_BITS: usize = INPUT_SIZE_BITS;
 
-    const RIGHT_INPUT_SIZE_BITS: usize = Self::INPUT_SIZE_BITS;
-
+impl<F: PrimeField, P: MiMCParameters> TwoToOneCRHScheme for MiMCNonFeistelCRH<F, P> {
+    type Input = [u8];
     type Output = F;
 
     type Parameters = MiMC<F, P>;
@@ -129,20 +131,31 @@ impl<F: PrimeField, P: MiMCParameters> TwoToOneCRH for MiMCNonFeistelCRH<F, P> {
     fn setup<R: ark_std::rand::Rng>(
         r: &mut R,
     ) -> Result<Self::Parameters, ark_crypto_primitives::Error> {
-        <Self as CRH>::setup(r)
+        <Self as CRHScheme>::setup(r)
     }
 
-    fn evaluate(
+    fn evaluate<T: Borrow<Self::Input>>(
         parameters: &Self::Parameters,
-        left_input: &[u8],
-        right_input: &[u8],
+        left_input: T,
+        right_input: T,
     ) -> Result<Self::Output, ark_crypto_primitives::Error> {
+        let left_input = left_input.borrow();
+        let right_input = right_input.borrow();
         assert_eq!(left_input.len(), right_input.len());
         let chained: Vec<_> = left_input
             .iter()
             .chain(right_input.iter())
             .copied()
             .collect();
-        <Self as CRH>::evaluate(parameters, &chained)
+        <Self as CRHScheme>::evaluate(parameters, chained)
+    }
+
+    fn compress<T: Borrow<Self::Output>>(
+        parameters: &Self::Parameters,
+        left_input: T,
+        right_input: T,
+    ) -> Result<Self::Output, Error> {
+        let rng = &mut OsRng;
+        Ok(F::rand(rng))
     }
 }

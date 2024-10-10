@@ -31,8 +31,8 @@ mod tests {
     use std::{error::Error, str::FromStr};
 
     use ark_bn254::Fr;
-    use ark_crypto_primitives::crh::TwoToOneCRH;
-    use ark_ff::{to_bytes, One, Zero};
+    use ark_crypto_primitives::crh::TwoToOneCRHScheme;
+    use ark_ff::{One, Zero};
 
     use crate::{params::round_keys_contants_to_vec, MiMC, MiMCFeistelCRH, MiMCNonFeistelCRH};
 
