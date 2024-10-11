@@ -38,7 +38,8 @@ impl<F: PrimeField, P: MiMCParameters> AllocVar<MiMC<F, P>, F> for MiMCVar<F, P>
             round_keys: mimc
                 .round_keys
                 .into_iter()
-                .map(|e| -> Result<_, _> { FpVar::new_variable(cs.clone(), || Ok(e), mode) })
+                // .map(|e| -> Result<_, _> { FpVar::new_variable(cs.clone(), || Ok(e), mode) })
+                .map(|e| -> Result<_, _> { FpVar::new_variable(cs.clone(), || Ok(e), ark_r1cs_std::prelude::AllocationMode::Constant) })
                 .collect::<Result<Vec<_>, _>>()?,
         })
     }
