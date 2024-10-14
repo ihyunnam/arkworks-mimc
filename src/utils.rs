@@ -3,7 +3,7 @@ use ark_r1cs_std::{fields::fp::FpVar, prelude::Boolean, uint8::UInt8, ToBitsGadg
 use ark_relations::r1cs::SynthesisError;
 use ark_std::vec::Vec;
 
-const CAPACITY: usize = 255;
+const CAPACITY: usize = 254;
 pub fn to_field_elements<F: PrimeField>(bytes: &[u8]) -> Vec<F> {
     // let max_size = (<F::Params as FpParameters>::CAPACITY / 8) as usize;
     let max_size = CAPACITY;
