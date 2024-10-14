@@ -90,7 +90,7 @@ impl<F: PrimeField, P: MiMCParameters> std::fmt::Debug for MiMC<F, P> {
 // }
 
 // const INPUT_SIZE_BITS: usize = <F::Params as FpParameters>::CAPACITY as usize;
-const INPUT_SIZE_BITS: usize = 256;     // capacity(?) for bn254::Fr
+const INPUT_SIZE_BITS: usize = 255;     // capacity(?) for bn254::Fr
 impl<F: PrimeField, P: MiMCParameters> CRHScheme for MiMCNonFeistelCRH<F, P> {
     type Input = [u8];
     type Output = F;
