@@ -2,12 +2,12 @@ use std::marker::PhantomData;
 
 use ark_ff::PrimeField;
 
-#[cfg(feature = "r1cs")]
+// #[cfg(feature = "r1cs")]     // TODO: Changed to expose for debugging
 pub mod constraints;
 pub mod params;
 pub mod utils;
 
-#[cfg(feature = "paramgen")]
+// #[cfg(feature = "paramgen")]
 pub mod paramgen;
 
 pub use traits::*;
@@ -18,7 +18,8 @@ pub trait MiMCParameters: Clone + Default {
     const EXPONENT: usize;
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone)]        // TODO: Commented out for visibility in src/traits.rs
+// #[derive(Clone)]
 pub struct MiMC<F: PrimeField, P: MiMCParameters> {
     pub num_outputs: usize,
     pub k: F,
