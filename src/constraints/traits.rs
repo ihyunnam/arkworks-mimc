@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use ark_crypto_primitives::{crh::TwoToOneCRHGadget, CRHGadget};
+use ark_crypto_primitives::crh::{TwoToOneCRHSchemeGadget, CRHSchemeGadget};
 use ark_ff::PrimeField;
 use ark_r1cs_std::{
     fields::fp::FpVar,

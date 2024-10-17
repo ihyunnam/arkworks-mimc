@@ -4,7 +4,7 @@ use ark_ff::PrimeField;
 use ark_r1cs_std::{fields::fp::FpVar, prelude::FieldVar};
 use ark_std::vec::Vec;
 
-use crate::MiMCParameters;
+use arkworks_mimc::MiMCParameters;
 
 mod traits;
 pub use traits::*;

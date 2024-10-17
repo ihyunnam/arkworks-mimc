@@ -30,7 +30,7 @@ mod tests {
 
     use std::{error::Error, str::FromStr};
 
-    use ark_bn254::Fr;
+    use ark_bls12_377::Fr;
     use ark_crypto_primitives::crh::TwoToOneCRHScheme;
     use ark_ff::{One, Zero};
 

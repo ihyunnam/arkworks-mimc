@@ -34,6 +34,7 @@ impl<F: PrimeField, P: MiMCParameters> std::fmt::Debug for MiMC<F, P> {
             .finish()
     }
 }
+
 // const INPUT_SIZE_BITS: usize = <F::Params as FpParameters>::CAPACITY as usize;
 // impl<F: PrimeField, P: MiMCParameters> CRHScheme for MiMCFeistelCRH<F, P> {
 //     type Input = [u8];
