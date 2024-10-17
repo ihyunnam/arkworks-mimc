@@ -105,7 +105,7 @@ impl<F: PrimeField, P: MiMCParameters> MiMCVar<F, P> {
 mod tests {
     use std::error::Error;
 
-    use ark_bn254::Fr;
+    use ark_bls12_377::Fr;
     use ark_crypto_primitives::{
         crh::{TwoToOneCRH, TwoToOneCRHGadget},
         CRH as CRHTrait,
